@@ -1,0 +1,157 @@
+# Priest levelling, levels 1-60.
+# Leave Shadowform manually when healing is needed.
+
+name: Priest Levelling
+spec: 5
+description: Priest levelling for levels 1-60. Plague and Mind Flay require Shadowform; leave it manually to heal.
+
+lists:
+  main:
+    - call_action_list,name=spell_queue
+    # Keep manually queued actions available while eating or drinking.
+    - return,if=buff.drink.up|buff.food.up
+    - call_action_list,name=sanity_checks
+    # Allow shared control breakers before pausing subsequent actions.
+    - return,if=player.stunned|player.feared|player.incapacitated|player.charmed
+    - call_action_list,name=auto_target_ranged
+    - heal,range_check=none,if=!player.combat&player.health.pct<config.ooc_heal_hp&!player.moving&!buff.shadowform.up
+    - lesser_heal,range_check=none,if=!player.combat&player.health.pct<config.ooc_heal_hp&!player.moving&!buff.shadowform.up
+    - call_action_list,name=ooc_buffs,if=!player.combat
+    - shadow_word_pain.mouseover,range_check=mouseover,if=!player.combat&!player.moving&mouseover.exists&mouseover.enemy&mouseover.alive&mouseover.attackable&mouseover.range<=30&!mouseover.debuff.shadow_word_pain.up&!mouseover.debuff.shackle_undead.up&!mouseover.debuff.psychic_scream.up&!config.auto_combat.has(0)&player.health.pct>=config.emergency_hp
+    - return,if=auto_combat.player
+    - desperate_prayer,range_check=none,interrupt=true,if=cooldown.desperate_prayer.ready&player.combat&player.health.pct<config.emergency_hp&!buff.shadowform.up
+    - power_word_shield,range_check=none,interrupt=true,if=player.combat&player.health.pct<config.emergency_hp&!player.debuff.weakened_soul.up.any&!buff.power_word_shield.up.any
+    - psychic_scream,range_check=none,interrupt=true,if=cooldown.psychic_scream.ready&config.auto_scream&player.combat&player.health.pct<config.emergency_hp&enemies.combat.8y>=2
+    - flash_heal,range_check=none,interrupt=true,if=player.combat&player.health.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - heal,range_check=none,interrupt=true,if=player.combat&player.health.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - lesser_heal,range_check=none,interrupt=true,if=player.combat&player.health.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064
+    - power_word_shield,cycle=party,cycle_order=health.pct,interrupt=true,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.pct<config.emergency_hp&!cycle.debuff.weakened_soul.up.any&!cycle.buff.power_word_shield.up.any
+    - flash_heal,cycle=party,cycle_order=health.pct,interrupt=true,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - heal,cycle=party,cycle_order=health.pct,interrupt=true,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - lesser_heal,cycle=party,cycle_order=health.pct,interrupt=true,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064
+    - return,if=player.channeling
+    - call_action_list,name=auto_heal,if=player.combat
+    - call_action_list,name=auto_mana,if=player.combat
+    - power_word_shield,range_check=none,if=config.pull_shield&player.combat&!player.debuff.weakened_soul.up.any&!buff.power_word_shield.up.any
+    - flash_heal,range_check=none,if=player.combat&player.health.pct<config.self_heal_hp&!player.moving&!buff.shadowform.up
+    - heal,range_check=none,if=player.combat&player.health.pct<config.self_heal_hp&!player.moving&!buff.shadowform.up
+    - lesser_heal,range_check=none,if=player.combat&player.health.pct<config.self_heal_hp&!player.moving&!buff.shadowform.up
+    - renew,range_check=none,if=player.combat&player.health.pct<config.renew_hp&!buff.renew.up&!buff.shadowform.up
+    - flash_heal,cycle=party,cycle_order=health.pct,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.pct<config.party_heal_hp&!player.moving&!buff.shadowform.up
+    - heal,cycle=party,cycle_order=health.pct,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.pct<config.party_heal_hp&!player.moving&!buff.shadowform.up
+    - lesser_heal,cycle=party,cycle_order=health.pct,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.pct<config.party_heal_hp&!player.moving&!buff.shadowform.up
+    - renew,cycle=party,cycle_order=health.pct,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.pct<config.party_heal_hp&!cycle.buff.renew.up&!buff.shadowform.up
+    - power_word_shield,range_check=none,if=player.moving&player.health.pct<config.self_heal_hp&!player.debuff.weakened_soul.up.any&!buff.power_word_shield.up.any
+    - shadow_word_death,if=((config.death_target_hp_absolute>0&target.health.current<=config.death_target_hp_absolute)|(config.death_under_20&target.health.pct<20))&cooldown.shadow_word_death.ready&target.enemy&player.health.pct>30&player.health.pct>=config.death_min_hp&player.health.pct>=config.emergency_hp
+    - call_action_list,name=ooc_buffs,if=player.combat
+    - call_action_list,name=moving,if=player.moving
+    - shadow_word_pain,if=target.enemy&(debuff.shadow_word_pain.down|debuff.shadow_word_pain.remains<2)&player.health.pct>=config.emergency_hp
+    - inner_focus,range_check=none,if=action.inner_focus.known&action.inner_focus.ready&!buff.inner_focus.up&cooldown.mind_blast.ready&!player.combat&target.enemy&player.health.pct>=config.emergency_hp
+    - mind_blast,if=cooldown.mind_blast.ready&!player.combat&target.enemy&player.health.pct>=config.emergency_hp
+    # Out-of-combat hover pulls respect Auto Combat Off.
+    - shadow_word_pain.mouseover,range_check=mouseover,if=mouseover.exists&mouseover.enemy&mouseover.alive&mouseover.attackable&mouseover.range<=30&!mouseover.debuff.shadow_word_pain.up&!mouseover.debuff.shackle_undead.up&!mouseover.debuff.psychic_scream.up&(player.combat|!config.auto_combat.has(0))&player.health.pct>=config.emergency_hp
+    # Vampiric Embrace is a target debuff.
+    - vampiric_embrace,if=target.enemy&player.combat&!debuff.vampiric_embrace.up&player.health.pct>=config.emergency_hp
+    - devouring_plague,if=cooldown.devouring_plague.ready&target.enemy&!debuff.devouring_plague.up&buff.shadowform.up&target.diseaseable&player.health.pct>=config.emergency_hp
+    - penance,if=cooldown.penance.ready&target.enemy&!buff.shadowform.up&!config.wand&player.health.pct>=config.emergency_hp
+    - mind_blast,if=cooldown.mind_blast.ready&target.enemy&player.health.pct>=config.emergency_hp
+    - mind_flay,if=target.enemy&target.range<=20&buff.shadowform.up&player.health.pct>=config.emergency_hp
+    - smite,if=target.enemy&!config.wand&player.health.pct>=config.emergency_hp
+    # Avoid toggling the modified One Button Assist macro while wanding.
+    - one_button_assist,range_check=none,if=player.combat&target.enemy&target.alive&target.attackable&target.range<=30&config.wand&!player.moving&!player.casting&!player.channeling&!buff.drink.up&!buff.food.up&swing.ranged.remains=9999
+  auto_rez:
+    - resurrection.mouseover,if=config.auto_rez&mouseover.dead&mouseover.friendly&mouseover.unitframe&!player.moving
+  ooc_buffs:
+    - inner_fire,range_check=none,if=buff.inner_fire.down
+    # Accept maintenance buffs from any Priest.
+    # Avoid redirecting self buffs to a friendly current target.
+    - power_word_fortitude,range_check=none,if=buff.power_word_fortitude.down.any&(!target.exists|target.enemy)&buff.1229741.down.any
+    - divine_spirit,range_check=none,if=buff.divine_spirit.down.any&(!target.exists|target.enemy)
+    - shadowguard,range_check=none,if=buff.shadowguard.down
+    - touch_of_weakness,range_check=none,if=buff.touch_of_weakness.down
+    - shadowform,range_check=none,if=action.shadowform.known&!buff.shadowform.up&player.health.pct>=config.ooc_heal_hp
+  moving:
+    - shadow_word_pain,if=target.enemy&(debuff.shadow_word_pain.down|debuff.shadow_word_pain.remains<2)&player.health.pct>=config.emergency_hp
+    - devouring_plague,if=cooldown.devouring_plague.ready&target.enemy&!debuff.devouring_plague.up&buff.shadowform.up&target.diseaseable&player.health.pct>=config.emergency_hp
+    - holy_nova,range_check=none,if=enemies.combat.10y>=2&!buff.shadowform.up&config.auto_holy_nova&player.health.pct>=config.emergency_hp
+
+config:
+  wand:
+    section: Mana
+    label: Wand
+    description: Requires a custom One Button Assist wand macro. Use as combat filler; suppress offensive Penance and Smite.
+    type: checkbox
+    default: false
+  emergency_hp:
+    section: Survival
+    label: Emergency health percent
+    type: slider
+    min: 10
+    max: 50
+    default: 35
+  self_heal_hp:
+    section: Survival
+    label: Direct heal health percent
+    type: slider
+    min: 20
+    max: 80
+    default: 50
+  party_heal_hp:
+    section: Survival
+    label: Party member heal health percent
+    type: slider
+    min: 20
+    max: 80
+    default: 50
+  renew_hp:
+    section: Survival
+    label: Renew health percent
+    type: slider
+    min: 30
+    max: 90
+    default: 70
+  ooc_heal_hp:
+    section: Survival
+    label: Out-of-combat heal health percent
+    type: slider
+    min: 0
+    max: 95
+    default: 70
+  pull_shield:
+    section: Survival
+    label: Shield in combat
+    type: checkbox
+    default: true
+  auto_scream:
+    section: Survival
+    label: Emergency Psychic Scream
+    type: checkbox
+    default: false
+  auto_holy_nova:
+    section: Utility
+    label: Automatic Holy Nova
+    description: Enable only when nearby enemies are safe to hit.
+    type: checkbox
+    default: false
+  death_target_hp_absolute:
+    section: "Shadow Word: Death"
+    label: Enemy health limit (HP)
+    description: Cast at or below this remaining enemy HP. 0 disables this condition; the under-20% toggle is independent.
+    type: number
+    min: 0
+    max: 5000
+    default: 300
+  death_under_20:
+    section: "Shadow Word: Death"
+    label: Use below 20% (Early Demise)
+    description: Allow Death below 20% enemy health regardless of the HP limit. Enable for Early Demise builds; player-health checks still apply.
+    type: checkbox
+    default: false
+  death_min_hp:
+    section: "Shadow Word: Death"
+    label: Minimum player health percent
+    description: Applies to both modes alongside the emergency health floor. Failed kills cost 30% maximum health; incoming damage is not predicted.
+    type: slider
+    min: 31
+    max: 100
+    default: 40

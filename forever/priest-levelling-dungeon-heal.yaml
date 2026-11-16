@@ -1,0 +1,322 @@
+# Priest dungeon healing, levels 1-60.
+# General member cycling; healing priorities remain tuned for dungeons.
+
+name: Priest Levelling - Dungeon Heal
+spec: 5
+description: Priest dungeon healing for levels 1-60 with per-spell thresholds and optional mana-spending damage.
+
+lists:
+  main:
+    - call_action_list,name=spell_queue
+    # Keep manually queued actions available while eating or drinking.
+    - return,if=buff.drink.up|buff.food.up
+    - call_action_list,name=sanity_checks
+    # Allow shared control breakers before pausing subsequent actions.
+    - return,if=player.stunned|player.feared|player.incapacitated|player.charmed
+    # Emergency Shadowform cancellation still needs in-game verification.
+    - shadowform,range_check=none,ignore_queue=true,interrupt=true,if=action.shadowform.known&action.shadowform.ready&buff.shadowform.up&player.combat&group.lowest.health.pct<config.emergency_hp
+    - return,if=player.channeling
+    - call_action_list,name=auto_heal,if=player.combat
+    - call_action_list,name=auto_mana,if=player.combat
+    - fade,range_check=none,if=config.auto_fade&player.combat&(target.threat>=3|nameplates.threat.max>=2)
+    - call_action_list,name=moving,if=player.moving
+    - desperate_prayer,range_check=none,interrupt=true,if=cooldown.desperate_prayer.ready&player.health.pct<config.desperate_prayer_hp
+    - power_word_shield,cycle=members,cycle_order=player_first,interrupt=true,if=cycle.is_player&cycle.health.pct<config.emergency_shield_hp&!player.debuff.weakened_soul.up.any&!buff.power_word_shield.up.any
+    - flash_heal,cycle=members,cycle_order=player_first,interrupt=true,if=cycle.is_player&cycle.health.pct<config.emergency_flash_hp&!player.moving&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - heal,cycle=members,cycle_order=player_first,interrupt=true,if=cycle.is_player&cycle.health.pct<config.emergency_heal_hp&!player.moving&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - lesser_heal,cycle=members,cycle_order=player_first,interrupt=true,if=cycle.is_player&cycle.health.pct<config.emergency_lesser_heal_hp&!player.moving&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064
+    # Emergency healing ignores the mana-conservation floor.
+    - inner_focus,range_check=none,if=action.inner_focus.known&action.inner_focus.ready&config.auto_inner_focus&group.lowest.health.pct<config.emergency_hp&player.combat&!buff.shadowform.up
+    - power_word_shield,cycle=members,cycle_order=health.pct,interrupt=true,if=cycle.range<=40&cycle.health.pct<config.emergency_shield_hp&!cycle.debuff.weakened_soul.up.any&!cycle.buff.power_word_shield.up.any
+    - divine_grace,cycle=members,cycle_order=health.pct,interrupt=true,if=cooldown.divine_grace.ready&cycle.range<=40&cycle.health.pct<config.divine_grace_hp&cycle.health.pct<50&!cycle.is_player
+    - penance,cycle=members,cycle_order=health.pct,interrupt=true,if=cooldown.penance.ready&cycle.range<=36&cycle.health.pct<config.emergency_penance_hp&!player.moving&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - flash_heal,cycle=members,cycle_order=health.pct,interrupt=true,if=cycle.range<=40&cycle.health.pct<config.emergency_flash_hp&!player.moving&player.casting.spell_id!=402174&player.casting.spell_id!=1240720&player.casting.spell_id!=1240721&player.casting.spell_id!=1316995&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - heal,cycle=members,cycle_order=health.pct,interrupt=true,if=cycle.range<=40&cycle.health.pct<config.emergency_heal_hp&!player.moving&player.casting.spell_id!=402174&player.casting.spell_id!=1240720&player.casting.spell_id!=1240721&player.casting.spell_id!=1316995&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - lesser_heal,cycle=members,cycle_order=health.pct,interrupt=true,if=cycle.range<=40&cycle.health.pct<config.emergency_lesser_heal_hp&!player.moving&player.casting.spell_id!=402174&player.casting.spell_id!=1240720&player.casting.spell_id!=1240721&player.casting.spell_id!=1316995&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064
+    # Emergency healing takes priority over mouseover requests.
+    - call_action_list,name=mouseover_heal,if=config.mouseover_healing&mouseover.exists&mouseover.friendly&mouseover.unitframe&mouseover.alive&mouseover.range<=40
+    - prayer_of_healing,range_check=none,if=group.count(cycle.health.pct<config.poh_hp)>=config.poh_count&mana.pct>=config.mana_conserve_pct&!player.moving
+    - holy_nova,range_check=none,if=player.combat&mana.pct>=config.mana_conserve_pct&group.count(cycle.health.pct<config.holy_nova_hp)>=config.poh_count&group.count(cycle.health.pct<config.holy_nova_hp&cycle.range<=10)>=config.poh_count&config.auto_holy_nova
+    # Conserve routine Flash Heal mana while retaining trained heal fallbacks.
+    - penance,cycle=members,cycle_order=health.pct,if=cooldown.penance.ready&cycle.range<=36&cycle.health.pct<config.penance_hp&!player.moving
+    - flash_heal,cycle=members,cycle_order=health.pct,if=cycle.range<=40&cycle.health.pct<config.flash_hp&mana.pct>=config.mana_conserve_pct&!player.moving
+    - greater_heal,cycle=members,cycle_order=health.pct,if=cycle.range<=40&cycle.health.pct<config.greater_heal_hp&!player.moving
+    - heal,cycle=members,cycle_order=health.pct,if=cycle.range<=40&cycle.health.pct<config.heal_hp&!player.moving
+    - lesser_heal,cycle=members,cycle_order=health.pct,if=cycle.range<=40&cycle.health.pct<config.lesser_heal_hp&!player.moving
+    - call_action_list,name=tank_upkeep,if=player.combat&mana.pct>=config.mana_conserve_pct
+    - renew,cycle=members,cycle_order=health.pct,if=config.auto_party_renew&player.combat&!player.moving&mana.pct>=config.mana_conserve_pct&cycle.range<=40&cycle.health.pct<config.renew_hp&!cycle.buff.renew.up
+    - call_action_list,name=ooc_buffs,if=!player.combat|mana.pct>=config.mana_conserve_pct
+    - call_action_list,name=dps_list,if=config.auto_damage&player.combat&target.enemy&group.lowest.health.pct>=config.dps_above_hp&mana.pct>=config.dps_mana_pct
+    # Avoid toggling the modified One Button Assist macro while wanding.
+    - one_button_assist,range_check=none,if=player.combat&target.enemy&target.alive&target.attackable&target.range<=30&config.wand&!player.moving&!player.casting&!player.channeling&!buff.drink.up&!buff.food.up&group.lowest.health.pct>=config.dps_above_hp&swing.ranged.remains=9999
+  auto_rez:
+    - resurrection.mouseover,if=config.auto_rez&mouseover.dead&mouseover.friendly&mouseover.unitframe&!player.moving
+  ooc_buffs:
+    # Accept maintenance buffs from any Priest.
+    - inner_fire,range_check=none,if=buff.inner_fire.down
+    - power_word_fortitude,cycle=members,cycle_order=player_first,if=cycle.is_player&buff.power_word_fortitude.down.any&cycle.buff.1229741.down.any
+    - power_word_fortitude,cycle=members,cycle_order=health.pct,if=config.buff_party&cycle.buff.power_word_fortitude.down.any&cycle.range<=30&cycle.buff.1229741.down.any
+    - divine_spirit,cycle=members,cycle_order=player_first,if=cycle.is_player&buff.divine_spirit.down.any
+    - divine_spirit,cycle=members,cycle_order=health.pct,if=config.buff_party&cycle.buff.divine_spirit.down.any&cycle.range<=30
+    - shadow_protection,cycle=members,cycle_order=player_first,if=cycle.is_player&config.shadow_protection&buff.shadow_protection.down.any
+    - shadow_protection,cycle=members,cycle_order=health.pct,if=config.shadow_protection&config.buff_party&cycle.buff.shadow_protection.down.any&cycle.range<=30
+  dps_list:
+    - shadow_word_pain,if=target.enemy&!debuff.shadow_word_pain.up
+    - smite,if=target.enemy&!config.wand
+  mouseover_heal:
+    - penance.mouseover,if=cooldown.penance.ready&mouseover.health.pct<config.penance_hp&!player.moving&mouseover.range<=36
+    - flash_heal.mouseover,if=mouseover.health.pct<config.flash_hp&mana.pct>=config.mana_conserve_pct&!player.moving
+    - greater_heal.mouseover,if=mouseover.health.pct<config.greater_heal_hp&!player.moving
+    - heal.mouseover,if=mouseover.health.pct<config.heal_hp&!player.moving
+    - lesser_heal.mouseover,if=mouseover.health.pct<config.lesser_heal_hp&!player.moving
+  tank_upkeep:
+    # Prefer the selected tank; role-based fallbacks depend on available role data.
+    - power_word_shield,cycle=members,cycle_order=health.pct,if=config.tank_target.has(cycle.name)&cycle.range<=40&cycle.health.pct<config.tank_shield_hp&!cycle.debuff.weakened_soul.up.any&!cycle.buff.power_word_shield.up.any
+    - power_word_shield,cycle=tanks,cycle_order=health.pct,if=cycle.range<=40&cycle.health.pct<config.tank_shield_hp&!cycle.debuff.weakened_soul.up.any&!cycle.buff.power_word_shield.up.any
+    - prayer_of_mending,cycle=members,cycle_order=health.pct,if=config.tank_target.has(cycle.name)&cycle.range<=40&!cycle.buff.prayer_of_mending.up&group.count(cycle.buff.prayer_of_mending.up)=0&cycle.health.pct<=config.prayer_of_mending_hp
+    - prayer_of_mending,cycle=tanks,cycle_order=health.pct,if=cycle.range<=40&!cycle.buff.prayer_of_mending.up&group.count(cycle.buff.prayer_of_mending.up)=0&cycle.health.pct<=config.prayer_of_mending_hp
+    - renew,cycle=members,cycle_order=health.pct,if=config.tank_target.has(cycle.name)&cycle.range<=40&cycle.health.pct<config.renew_hp&!cycle.buff.renew.up
+    - renew,cycle=tanks,cycle_order=health.pct,if=cycle.range<=40&cycle.health.pct<config.renew_hp&!cycle.buff.renew.up
+  moving:
+    - desperate_prayer,range_check=none,if=cooldown.desperate_prayer.ready&player.health.pct<config.desperate_prayer_hp
+    - power_word_shield,cycle=members,cycle_order=player_first,if=cycle.is_player&cycle.health.pct<config.emergency_shield_hp&!player.debuff.weakened_soul.up.any&!buff.power_word_shield.up.any
+    - power_word_shield,cycle=members,cycle_order=health.pct,if=cycle.range<=40&cycle.health.pct<config.emergency_shield_hp&!cycle.debuff.weakened_soul.up.any&!cycle.buff.power_word_shield.up.any
+    - divine_grace,cycle=members,cycle_order=health.pct,if=cooldown.divine_grace.ready&cycle.range<=40&cycle.health.pct<config.divine_grace_hp&cycle.health.pct<50&!cycle.is_player
+    - renew,cycle=members,cycle_order=health.pct,if=cycle.range<=40&cycle.health.pct<config.moving_renew_hp&!cycle.buff.renew.up
+    - holy_nova,range_check=none,if=player.combat&mana.pct>=config.mana_conserve_pct&group.count(cycle.health.pct<config.holy_nova_hp&cycle.range<=10)>=config.poh_count&config.auto_holy_nova
+    - power_word_shield,cycle=members,cycle_order=health.pct,if=player.combat&mana.pct>=config.mana_conserve_pct&config.tank_target.has(cycle.name)&cycle.range<=40&cycle.health.pct<config.tank_shield_hp&!cycle.debuff.weakened_soul.up.any&!cycle.buff.power_word_shield.up.any
+    - power_word_shield,cycle=tanks,cycle_order=health.pct,if=player.combat&mana.pct>=config.mana_conserve_pct&cycle.range<=40&cycle.health.pct<config.tank_shield_hp&!cycle.debuff.weakened_soul.up.any&!cycle.buff.power_word_shield.up.any
+    - prayer_of_mending,cycle=members,cycle_order=health.pct,if=player.combat&mana.pct>=config.mana_conserve_pct&config.tank_target.has(cycle.name)&cycle.range<=40&!cycle.buff.prayer_of_mending.up&group.count(cycle.buff.prayer_of_mending.up)=0&cycle.health.pct<=config.prayer_of_mending_hp
+    - prayer_of_mending,cycle=tanks,cycle_order=health.pct,if=player.combat&mana.pct>=config.mana_conserve_pct&cycle.range<=40&!cycle.buff.prayer_of_mending.up&group.count(cycle.buff.prayer_of_mending.up)=0&cycle.health.pct<=config.prayer_of_mending_hp
+    # Optional moving top-ups also work between pulls.
+    - renew,cycle=members,cycle_order=health.pct,if=config.auto_party_renew&mana.pct>=config.mana_conserve_pct&cycle.range<=40&cycle.health.pct<config.moving_topup_renew_hp&!cycle.buff.renew.up
+
+config:
+  wand:
+    section: Mana
+    label: Wand
+    description: Requires a custom One Button Assist wand macro. Use as filler while the group is healthy; suppress Smite.
+    type: checkbox
+    default: false
+  tank_target:
+    section: Healing
+    label: Tank target
+    type: unit_select
+    filter: all
+    max: 1
+    show_override: true
+  mouseover_healing:
+    section: Healing
+    label: Mouseover healing
+    type: checkbox
+    default: false
+  auto_party_renew:
+    section: Healing
+    label: Routine party Renew
+    description: Enable general party Renew and moving top-ups. Tank maintenance and moving rescue remain independent.
+    type: checkbox
+    default: false
+  emergency_hp:
+    section: Healing
+    label: Emergency support health percent
+    description: Controls emergency Shadowform cancellation and Inner Focus; rescue spells have separate thresholds.
+    type: slider
+    min: 10
+    max: 60
+    default: 35
+  flash_hp:
+    section: Healing
+    label: Flash Heal health percent
+    type: slider
+    min: 20
+    max: 90
+    default: 40
+  heal_hp:
+    section: Healing
+    label: Heal health percent
+    type: slider
+    min: 40
+    max: 95
+    default: 75
+  renew_hp:
+    section: Healing
+    label: Renew health percent
+    description: Tank maintenance and optional stationary party Renew; moving heals use separate thresholds.
+    type: slider
+    min: 50
+    max: 100
+    default: 90
+  tank_shield_hp:
+    section: Healing
+    label: Tank shield health percent
+    type: slider
+    min: 50
+    max: 100
+    default: 90
+  poh_hp:
+    section: Healing
+    label: Prayer of Healing health percent
+    type: slider
+    min: 40
+    max: 95
+    default: 70
+  desperate_prayer_hp:
+    section: Healing
+    label: Desperate Prayer health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 35
+  emergency_shield_hp:
+    section: Healing
+    label: Emergency Power Word Shield health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 35
+  emergency_flash_hp:
+    section: Healing
+    label: Emergency Flash Heal health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 35
+  emergency_heal_hp:
+    section: Healing
+    label: Emergency Heal health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 35
+  emergency_lesser_heal_hp:
+    section: Healing
+    label: Emergency Lesser Heal health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 35
+  divine_grace_hp:
+    section: Healing
+    label: Divine Grace health percent
+    type: slider
+    min: 0
+    max: 50
+    default: 35
+  emergency_penance_hp:
+    section: Healing
+    label: Emergency Penance health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 35
+  penance_hp:
+    section: Healing
+    label: Penance health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 60
+  greater_heal_hp:
+    section: Healing
+    label: Greater Heal health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 55
+  lesser_heal_hp:
+    section: Healing
+    label: Lesser Heal health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 75
+  holy_nova_hp:
+    section: Healing
+    label: Holy Nova injured-member health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 70
+  prayer_of_mending_hp:
+    section: Healing
+    label: Prayer of Mending maximum health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 100
+  moving_renew_hp:
+    section: Healing
+    label: Moving priority Renew health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 60
+  moving_topup_renew_hp:
+    section: Healing
+    label: Moving top-up Renew health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 80
+  poh_count:
+    section: Healing
+    label: Group heal injured members
+    type: slider
+    min: 2
+    max: 5
+    default: 3
+  mana_conserve_pct:
+    section: Mana
+    label: Conserve below mana percent
+    description: Limits routine Flash Heal, group healing and upkeep; other direct heals remain eligible.
+    type: slider
+    min: 0
+    max: 50
+    default: 30
+  auto_damage:
+    section: Damage
+    label: Mana-spending damage
+    description: Allow automatic Pain and Smite while the group is healthy. Wand remains independent.
+    type: checkbox
+    default: false
+  dps_above_hp:
+    section: Damage
+    label: DPS minimum group health percent
+    type: slider
+    min: 0
+    max: 100
+    default: 90
+  dps_mana_pct:
+    section: Damage
+    label: DPS minimum mana percent
+    type: slider
+    min: 50
+    max: 100
+    default: 60
+  auto_inner_focus:
+    section: Utility
+    label: Automatic emergency Inner Focus
+    type: checkbox
+    default: true
+  auto_fade:
+    section: Utility
+    label: Automatic Fade when holding threat
+    type: checkbox
+    default: true
+  buff_party:
+    section: Buffs
+    label: Maintain party buffs
+    description: Maintain missing party buffs between pulls, or in combat when the upkeep mana floor permits.
+    type: checkbox
+    default: true
+  shadow_protection:
+    section: Buffs
+    label: Maintain Shadow Protection
+    type: checkbox
+    default: false
+  auto_holy_nova:
+    section: Utility
+    label: Automatic Holy Nova
+    description: Enable only when nearby enemies are safe to hit.
+    type: checkbox
+    default: false
