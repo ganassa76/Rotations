@@ -24,6 +24,18 @@ earlier; lowering it waits for more injury. Eligibility does not guarantee a cas
 earlier priorities, movement, spell availability, range and bindings still matter.
 The defaults are starting points, not promises of optimal mana use.
 
+Healing thresholds use **effective health** for direct heals, Renew, Prayer of
+Mending and group-heal injured-member counts:
+
+`effective health% = current health% - healing-absorb% + incoming-healing%`
+
+For example, 60% current health plus a reported incoming heal worth 30% is 90%
+effective health, so a heal set below 75% is skipped. This relies on the incoming
+healing reported by the client; it does not cancel a cast already started or
+remove a heal already queued. Shields, fear, form/support triggers, damage gates
+and Death's survival checks still use actual health. Threshold numbers and
+priorities are unchanged.
+
 ### Priest Levelling
 
 Leave Shadowform manually when healing is needed. Devouring Plague and Mind Flay
@@ -31,6 +43,8 @@ require active Shadowform. Routine direct heals run before Renew and damage.
 
 | Setting | Default (range) | What it controls |
 | --- | --- | --- |
+| Skip Mind Blast | Off | Skip automatic Mind Blast, including the opener, and its opener Inner Focus preparation. Does not affect other damage spells. |
+| Mind Blast minimum enemy health percent | 0% (0–100%) | Start Mind Blast only at or above this enemy health. For example, 30% permits it at 30–100% and skips it below 30%. Applies to the opener and later casts, plus opener Inner Focus preparation. 0 removes the HP limit; Skip Mind Blast overrides it. Does not cancel a cast already started. |
 | Wand | Off | Requires a custom One Button Assist wand macro and binding. Enables wand filler and suppresses offensive Penance and Smite. Pain, Mind Blast, Death, Plague and Mind Flay remain eligible; Mind Flay can take the filler slot before the wand. |
 | Emergency health percent | 35% (10–50%) | Below this, prioritise available self/party rescue spells. Most damage requires your health at or above it; Death also has its own minimum. |
 | Direct heal health percent | 50% (20–80%) | In combat, try available self Flash Heal, Heal or Lesser Heal below this health. Also controls the moving self-shield threshold. |

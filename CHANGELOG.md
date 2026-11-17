@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased
+
+- Added Skip Mind Blast and a minimum enemy-health percentage for Mind Blast in the levelling profile. Both also gate opener Inner Focus preparation; defaults preserve existing behaviour.
+- Both Priest profiles now use effective health, including reported incoming heals, for healing thresholds and group-heal counts. Actual-health safety checks, priorities and numerical defaults are unchanged.
+
 ## 1.0.0 — 2026-11-16
 
 First release.
