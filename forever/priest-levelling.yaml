@@ -22,11 +22,11 @@ lists:
     - desperate_prayer,range_check=none,interrupt=true,if=cooldown.desperate_prayer.ready&player.combat&player.health.effective.pct<config.emergency_hp&!buff.shadowform.up
     - power_word_shield,range_check=none,interrupt=true,if=player.combat&player.health.pct<config.emergency_hp&!player.debuff.weakened_soul.up.any&!buff.power_word_shield.up.any
     - psychic_scream,range_check=none,interrupt=true,if=cooldown.psychic_scream.ready&config.auto_scream&player.combat&player.health.pct<config.emergency_hp&enemies.combat.8y>=2
-    - flash_heal,range_check=none,interrupt=true,if=player.combat&player.health.effective.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - flash_heal,range_check=none,interrupt=true,if=player.combat&player.health.effective.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&(config.emergency_flash_interrupt|player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053)
     - heal,range_check=none,interrupt=true,if=player.combat&player.health.effective.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
     - lesser_heal,range_check=none,interrupt=true,if=player.combat&player.health.effective.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064
     - power_word_shield,cycle=party,cycle_order=health.pct,interrupt=true,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.pct<config.emergency_hp&!cycle.debuff.weakened_soul.up.any&!cycle.buff.power_word_shield.up.any
-    - flash_heal,cycle=party,cycle_order=health.pct,interrupt=true,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.effective.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
+    - flash_heal,cycle=party,cycle_order=health.pct,interrupt=true,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.effective.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&(config.emergency_flash_interrupt|player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053)
     - heal,cycle=party,cycle_order=health.pct,interrupt=true,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.effective.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2050&player.casting.spell_id!=2052&player.casting.spell_id!=2053
     - lesser_heal,cycle=party,cycle_order=health.pct,interrupt=true,if=player.combat&!cycle.is_player&cycle.range<=40&cycle.health.effective.pct<config.emergency_hp&!player.moving&!buff.shadowform.up&player.casting.spell_id!=2061&player.casting.spell_id!=9472&player.casting.spell_id!=9473&player.casting.spell_id!=9474&player.casting.spell_id!=10915&player.casting.spell_id!=10916&player.casting.spell_id!=10917&player.casting.spell_id!=2054&player.casting.spell_id!=2055&player.casting.spell_id!=6063&player.casting.spell_id!=6064
     - return,if=player.channeling
@@ -46,17 +46,17 @@ lists:
     - call_action_list,name=ooc_buffs,if=player.combat
     - call_action_list,name=moving,if=player.moving
     - shadow_word_pain,if=target.enemy&(debuff.shadow_word_pain.down|debuff.shadow_word_pain.remains<2)&player.health.pct>=config.emergency_hp
-    - inner_focus,range_check=none,if=!config.skip_mind_blast&target.health.pct>=config.mind_blast_min_target_hp&action.inner_focus.known&action.inner_focus.ready&!buff.inner_focus.up&cooldown.mind_blast.ready&!player.combat&target.enemy&player.health.pct>=config.emergency_hp
-    - mind_blast,if=!config.skip_mind_blast&target.health.pct>=config.mind_blast_min_target_hp&cooldown.mind_blast.ready&!player.combat&target.enemy&player.health.pct>=config.emergency_hp
+    - inner_focus,range_check=none,if=!player.moving&!config.skip_mind_blast&target.health.pct>=config.mind_blast_min_target_hp&action.inner_focus.known&action.inner_focus.ready&!buff.inner_focus.up&cooldown.mind_blast.ready&!player.combat&target.enemy&player.health.pct>=config.emergency_hp
+    - mind_blast,if=!player.moving&!config.skip_mind_blast&target.health.pct>=config.mind_blast_min_target_hp&cooldown.mind_blast.ready&!player.combat&target.enemy&player.health.pct>=config.emergency_hp
     # Out-of-combat hover pulls respect Auto Combat Off.
     - shadow_word_pain.mouseover,range_check=mouseover,if=mouseover.exists&mouseover.enemy&mouseover.alive&mouseover.attackable&mouseover.range<=30&!mouseover.debuff.shadow_word_pain.up&!mouseover.debuff.shackle_undead.up&!mouseover.debuff.psychic_scream.up&(player.combat|!config.auto_combat.has(0))&player.health.pct>=config.emergency_hp
     # Vampiric Embrace is a target debuff.
     - vampiric_embrace,if=target.enemy&player.combat&!debuff.vampiric_embrace.up&player.health.pct>=config.emergency_hp
     - devouring_plague,if=cooldown.devouring_plague.ready&target.enemy&!debuff.devouring_plague.up&buff.shadowform.up&target.diseaseable&player.health.pct>=config.emergency_hp
-    - penance,if=cooldown.penance.ready&target.enemy&!buff.shadowform.up&!config.wand&player.health.pct>=config.emergency_hp
-    - mind_blast,if=!config.skip_mind_blast&target.health.pct>=config.mind_blast_min_target_hp&cooldown.mind_blast.ready&target.enemy&player.health.pct>=config.emergency_hp
-    - mind_flay,if=target.enemy&target.range<=20&buff.shadowform.up&player.health.pct>=config.emergency_hp
-    - smite,if=target.enemy&!config.wand&player.health.pct>=config.emergency_hp
+    - penance,if=!player.moving&cooldown.penance.ready&target.enemy&!buff.shadowform.up&!config.wand&player.health.pct>=config.emergency_hp
+    - mind_blast,if=!player.moving&!config.skip_mind_blast&target.health.pct>=config.mind_blast_min_target_hp&cooldown.mind_blast.ready&target.enemy&player.health.pct>=config.emergency_hp
+    - mind_flay,if=!player.moving&target.enemy&target.range<=20&buff.shadowform.up&player.health.pct>=config.emergency_hp
+    - smite,if=!player.moving&target.enemy&!config.wand&player.health.pct>=config.emergency_hp
     # Avoid toggling the modified One Button Assist macro while wanding.
     - one_button_assist,range_check=none,if=player.combat&target.enemy&target.alive&target.attackable&target.range<=30&config.wand&!player.moving&!player.casting&!player.channeling&!buff.drink.up&!buff.food.up&swing.ranged.remains=9999
   auto_rez:
@@ -96,6 +96,12 @@ config:
     description: Requires a custom One Button Assist wand macro. Use as combat filler; suppress offensive Penance and Smite.
     type: checkbox
     default: false
+  emergency_flash_interrupt:
+    section: Survival
+    label: Emergency Flash Heal interrupts slow heals
+    description: Allow emergency Flash Heal to interrupt Heal or Lesser Heal. Off restores their previous cast protection; other interruption rules stay unchanged.
+    type: checkbox
+    default: true
   emergency_hp:
     section: Survival
     label: Emergency health percent

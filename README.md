@@ -31,8 +31,9 @@ Mending and group-heal injured-member counts:
 
 For example, 60% current health plus a reported incoming heal worth 30% is 90%
 effective health, so a heal set below 75% is skipped. This relies on the incoming
-healing reported by the client; it does not cancel a cast already started or
-remove a heal already queued. Shields, fear, form/support triggers, damage gates
+healing reported by the client. Prediction checks alone do not cancel a cast or
+remove a queued heal; emergency interruption rules are separate. Shields, fear,
+form/support triggers, damage gates
 and Death's survival checks still use actual health. Threshold numbers and
 priorities are unchanged.
 
@@ -47,6 +48,7 @@ require active Shadowform. Routine direct heals run before Renew and damage.
 | Mind Blast minimum enemy health percent | 0% (0–100%) | Start Mind Blast only at or above this enemy health. For example, 30% permits it at 30–100% and skips it below 30%. Applies to the opener and later casts, plus opener Inner Focus preparation. 0 removes the HP limit; Skip Mind Blast overrides it. Does not cancel a cast already started. |
 | Wand | Off | Requires a custom One Button Assist wand macro and binding. Enables wand filler and suppresses offensive Penance and Smite. Pain, Mind Blast, Death, Plague and Mind Flay remain eligible; Mind Flay can take the filler slot before the wand. |
 | Emergency health percent | 35% (10–50%) | Below this, prioritise available self/party rescue spells. Most damage requires your health at or above it; Death also has its own minimum. |
+| Emergency Flash Heal interrupts slow heals | On | Let emergency self/party Flash Heal interrupt Heal or Lesser Heal when its emergency health condition passes. Off restores the previous protection for those casts; it does not disable emergency Flash Heal or change other interruption rules. |
 | Direct heal health percent | 50% (20–80%) | In combat, try available self Flash Heal, Heal or Lesser Heal below this health. Also controls the moving self-shield threshold. |
 | Party member heal health percent | 50% (20–80%) | In combat, try direct heals, then missing Renew, on other party members below this health. Emergency assistance uses the emergency threshold instead. |
 | Renew health percent | 70% (30–90%) | Apply missing Renew to yourself below this health in combat, outside Shadowform. |
@@ -82,6 +84,7 @@ fallbacks; selecting one does not exclude other detected tanks.
 | Mouseover healing | Off | Allow direct heals on a living friendly unit frame under the mouse, within 40 yards (36 for Penance). Emergency healing runs first; mouseover uses the normal per-spell thresholds. |
 | Routine party Renew | Off | Enable general stationary party Renew and later moving top-ups. Does not disable tank Renew or the earlier moving rescue Renew. |
 | Emergency support health percent | 35% (10–60%) | Group-lowest threshold for attempted emergency Shadowform cancellation and optional Inner Focus. Does not replace individual rescue thresholds. |
+| Emergency Flash Heal interrupts slow heals | On | Let emergency self/member Flash Heal interrupt Heal or Lesser Heal when its emergency health condition passes. Off restores the previous protection for those casts. Channel protection and other interruption rules remain unchanged. |
 | Desperate Prayer health percent | 35% (0–100%) | Your health threshold for self-rescue with Desperate Prayer. |
 | Emergency Power Word Shield health percent | 35% (0–100%) | Rescue shield threshold, respecting existing shields and Weakened Soul. |
 | Emergency Flash Heal health percent | 35% (0–100%) | High-priority Flash Heal threshold. |
