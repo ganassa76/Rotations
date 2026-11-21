@@ -1,0 +1,72 @@
+name: Priest Shadow - Dungeon DPS
+spec: 5
+description: Level 60 five-player Shadow DPS. Keep the kill target selected and enable AoE only where Plague can spread safely.
+
+config:
+  death_target_hp_absolute:
+    section: "Shadow Word: Death"
+    label: Enemy health limit (HP)
+    description: Cast at or below this remaining enemy HP. Set to 0 to use only the optional percentage rule.
+    type: number
+    min: 0
+    max: 5000
+    default: 300
+  death_under_20:
+    section: "Shadow Word: Death"
+    label: Use below 20% (Early Demise)
+    description: Allow Death below 20% enemy health regardless of the HP limit. Enable for Early Demise builds.
+    type: checkbox
+    default: false
+  death_min_hp:
+    section: "Shadow Word: Death"
+    label: Minimum priest health percent for Death
+    description: Death requires more than 50% personal health. Raise this minimum for a larger margin against the 30% backlash.
+    type: slider
+    min: 50
+    max: 100
+    default: 50
+  mouseover_pain:
+    section: Damage
+    label: Mouseover Pain in AoE
+    description: Hover an enemy already fighting your party to apply missing Pain. Requires a mouseover binding.
+    type: checkbox
+    default: true
+  auto_silence:
+    section: Utility
+    label: Interrupt with Silence
+    description: Use Silence on an interruptible cast from the selected enemy, even during Mind Flay.
+    type: checkbox
+    default: false
+
+variables:
+  target_controlled: debuff.polymorph.up.any|debuff.shackle_undead.up.any|debuff.sap.up.any|debuff.freezing_trap.up.any|debuff.hibernate.up.any|debuff.repentance.up.any|debuff.banish.up.any|debuff.psychic_scream.up.any
+  mouseover_controlled: mouseover.debuff.polymorph.up.any|mouseover.debuff.shackle_undead.up.any|mouseover.debuff.sap.up.any|mouseover.debuff.freezing_trap.up.any|mouseover.debuff.hibernate.up.any|mouseover.debuff.repentance.up.any|mouseover.debuff.banish.up.any|mouseover.debuff.psychic_scream.up.any
+
+lists:
+  main:
+    - call_action_list,name=spell_queue
+    - return,if=!state.rotation|state.blocked_inputs|player.dead|mounted|buff.drink.up|buff.food.up
+    - call_action_list,name=sanity_checks
+    - return,if=player.stunned|player.feared|player.incapacitated|player.charmed|player.silenced
+    - call_action_list,name=auto_heal,if=player.combat
+    - call_action_list,name=auto_mana,if=player.combat
+    - shadowform,range_check=none,if=!player.combat&!player.channeling&buff.shadowform.down
+    - call_action_list,name=preparation,if=!player.combat&!player.channeling&!target.combat
+    - return,if=!buff.shadowform.up|(!player.combat&config.auto_combat.has(0))
+    - return,if=!target.exists|!target.enemy|!target.alive|!target.attackable|!target.combat|(!target.targeting_party&target.threat<0)|var.target_controlled
+    - silence,interrupt=true,if=config.auto_silence&target.casting.interruptible
+    - return,if=player.channeling
+    - fade,range_check=none,if=player.combat&target.threat>=2
+    - shadow_word_death,if=((config.death_target_hp_absolute>0&target.health.current<=config.death_target_hp_absolute)|(config.death_under_20&target.health.pct<20))&player.health.pct>50&player.health.pct>=config.death_min_hp
+    - mind_blast,if=!player.moving&action.mind_blast.last_used<0&target.time_to_die>action.mind_blast.cast_time
+    - shadow_word_pain,if=debuff.shadow_word_pain.down
+    - devouring_plague,if=state.aoe&target.diseaseable&debuff.devouring_plague.down
+    - mind_blast,if=!player.moving&target.time_to_die>action.mind_blast.cast_time
+    - shadow_word_pain.mouseover,if=config.mouseover_pain&state.aoe&player.combat&mouseover.exists&mouseover.enemy&mouseover.alive&mouseover.attackable&mouseover.combat&(mouseover.targeting_party|mouseover.threat>=0)&!var.mouseover_controlled&mouseover.debuff.shadow_word_pain.down
+    - vampiric_embrace,if=debuff.vampiric_embrace.down
+    - mind_flay,if=!player.moving&target.time_to_die>action.mind_flay.tick_time
+
+  preparation:
+    - inner_fire,range_check=none,if=buff.inner_fire.down
+    - power_word_fortitude,cycle=members,cycle_order=player_first,if=cycle.range<=30&cycle.buff.power_word_fortitude.down.any&cycle.buff.1229741.down.any
+    - divine_spirit,cycle=members,cycle_order=player_first,if=cycle.range<=30&cycle.buff.divine_spirit.down.any
